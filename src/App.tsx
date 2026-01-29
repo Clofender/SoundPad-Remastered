@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Header, type TabType } from "./components/layout/Header";
 import { SoundCard } from "./components/ui/SoundCard";
 import { useAudio } from "./hooks/useAudio";
 import { Plus } from "lucide-react";
 import type { Sound } from "./types";
+import { saveSoundToDB, getAllSounds, deleteSoundFromDB } from "./utils/db";
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>("board");
@@ -11,7 +12,13 @@ function App() {
   const { playSound } = useAudio();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    getAllSounds().then(setSounds);
+  }, []);
+
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -24,11 +31,14 @@ function App() {
 
     setSounds((prev) => [...prev, newSound]);
 
+    await saveSoundToDB(newSound, file);
+
     event.target.value = "";
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     setSounds((prev) => prev.filter((sound) => sound.id !== id));
+    await deleteSoundFromDB(id);
   };
 
   return (
@@ -46,7 +56,6 @@ function App() {
               className="hidden"
             />
 
-            {/* BOTÃO ADICIONAR */}
             <button
               onClick={() => fileInputRef.current?.click()}
               className="group flex flex-col items-center justify-center aspect-square border-2 border-dashed border-white/10 rounded-xl text-gray-500 hover:border-primary hover:text-primary hover:bg-white/[0.02] transition-all"
@@ -58,7 +67,6 @@ function App() {
               <span className="text-sm font-medium">Adicionar</span>
             </button>
 
-            {/* LISTA DE SONS REAIS */}
             {sounds.map((sound) => (
               <SoundCard
                 key={sound.id}
@@ -66,9 +74,7 @@ function App() {
                 shortcut={sound.shortcut}
                 onClick={() => playSound(sound.fileUrl)}
                 onDelete={() => handleDelete(sound.id)}
-                onEditShortcut={() =>
-                  alert(`Em breve: editar atalho para ${sound.title}`)
-                }
+                onEditShortcut={() => alert("Em breve!")}
               />
             ))}
           </div>

@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import type { AudioDevice } from "../types";
 
+interface HTMLAudioElementWithSinkId extends HTMLAudioElement {
+  setSinkId: (deviceId: string) => Promise<void>;
+  sinkId: string;
+}
+
 export function useAudio() {
   const [devices, setDevices] = useState<AudioDevice[]>([]);
 
@@ -47,7 +52,7 @@ export function useAudio() {
   };
 
   const playSound = (url: string) => {
-    const audioMain = new Audio(url);
+    const audioMain = new Audio(url) as HTMLAudioElementWithSinkId;
 
     if (selectedOutputId) {
       if (typeof audioMain.setSinkId === "function") {

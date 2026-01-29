@@ -4,6 +4,7 @@ import { SoundBoard } from "./components/layout/SoundBoard";
 import { SettingsTab } from "./components/layout/SettingsTab";
 import { useAudio } from "./hooks/useAudio";
 import { useTheme } from "./hooks/useTheme";
+import { useGlobalShortcuts } from "./hooks/useGlobalShortcuts.ts";
 import {
   saveSoundToDB,
   getAllSounds,
@@ -11,7 +12,6 @@ import {
   updateSoundShortcut,
 } from "./utils/db";
 import type { Sound } from "./types";
-import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>("board");
@@ -25,49 +25,14 @@ function App() {
     setAudioOutput,
     refreshDevices,
   } = useAudio();
+
   const { theme, setTheme, colors } = useTheme();
 
   useEffect(() => {
     getAllSounds().then(setSounds);
   }, []);
 
-  useEffect(() => {
-    const setupShortcuts = async () => {
-      try {
-        await unregisterAll();
-      } catch {
-        void 0;
-      }
-
-      for (const sound of sounds) {
-        if (sound.shortcut) {
-          try {
-            const shortcutKey = sound.shortcut
-              .replace("Key", "")
-              .replace("Digit", "")
-              .replace("ArrowUp", "Up")
-              .replace("ArrowDown", "Down")
-              .replace("ArrowLeft", "Left")
-              .replace("ArrowRight", "Right");
-
-            await register(shortcutKey, (event) => {
-              if (event.state === "Pressed") {
-                playSound(sound.fileUrl);
-              }
-            });
-          } catch (error) {
-            console.error(`Erro no atalho [${sound.shortcut}]:`, error);
-          }
-        }
-      }
-    };
-
-    setupShortcuts();
-
-    return () => {
-      unregisterAll().catch(() => {});
-    };
-  }, [sounds, playSound]);
+  useGlobalShortcuts(sounds, playSound);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

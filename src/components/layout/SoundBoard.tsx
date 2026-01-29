@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Plus, Search, X } from "lucide-react";
 import { SoundCard } from "../ui/SoundCard";
 import type { Sound } from "../../types";
@@ -21,7 +21,6 @@ export function SoundBoard({
   onRecordShortcut,
 }: SoundBoardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,13 +31,14 @@ export function SoundBoard({
     }
   };
 
-  const filteredSounds = sounds.filter((sound) =>
-    sound.title.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredSounds = useMemo(() => {
+    return sounds.filter((sound) =>
+      sound.title.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [sounds, searchTerm]);
 
   return (
     <div className="space-y-6">
-      {" "}
       <div className="flex items-center gap-4 bg-card/50 p-2 rounded-xl border border-white/5 backdrop-blur-sm sticky top-20 z-40 shadow-lg">
         <div className="relative flex-1 group">
           <Search

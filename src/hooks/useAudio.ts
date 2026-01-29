@@ -1,41 +1,77 @@
-import { useState, useEffect } from "react";
-
-export interface AudioDevice {
-  deviceId: string;
-  label: string;
-}
+import { useState, useEffect, useCallback } from "react";
+import type { AudioDevice } from "../types";
 
 export function useAudio() {
-  const [selectedOutputId, setSelectedOutputId] = useState<string>("");
+  const [devices, setDevices] = useState<AudioDevice[]>([]);
 
-  useEffect(() => {
-    async function initAudio() {
-      try {
-        // Pede permissão para ver os nomes dos dispositivos
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const outputs = devices.filter((d) => d.kind === "audiooutput");
-        const cable = outputs.find((d) =>
-          d.label.toLowerCase().includes("cable"),
-        );
-        if (cable) setSelectedOutputId(cable.deviceId);
-      } catch (e) {
-        console.error("Erro ao iniciar áudio:", e);
-      }
+  const [selectedOutputId, setSelectedOutputId] = useState<string>(() => {
+    return localStorage.getItem("audio-output-device") || "";
+  });
+
+  const getDevices = useCallback(async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      const allDevices = await navigator.mediaDevices.enumerateDevices();
+      const outputs = allDevices
+        .filter((d) => d.kind === "audiooutput")
+        .map((d) => ({
+          deviceId: d.deviceId,
+          label: d.label || `Speaker (${d.deviceId.slice(0, 5)}...)`,
+        }));
+      setDevices(outputs);
+    } catch (error) {
+      console.error("Erro ao listar dispositivos:", error);
     }
-    initAudio();
   }, []);
 
-  const playSound = (url: string) => {
-    const audio = new Audio(url);
+  useEffect(() => {
+    const init = async () => {
+      await getDevices();
+    };
+    init();
+    const handleDeviceChange = () => {
+      getDevices();
+    };
+    navigator.mediaDevices.addEventListener("devicechange", handleDeviceChange);
+    return () => {
+      navigator.mediaDevices.removeEventListener(
+        "devicechange",
+        handleDeviceChange,
+      );
+    };
+  }, [getDevices]);
 
-    if (audio.setSinkId && selectedOutputId) {
-      audio.setSinkId(selectedOutputId).catch((e) => console.warn(e));
-    }
-
-    audio.volume = 1;
-    audio.play().catch((e) => console.error("Erro ao tocar:", e));
+  const setAudioOutput = (deviceId: string) => {
+    setSelectedOutputId(deviceId);
+    localStorage.setItem("audio-output-device", deviceId);
   };
 
-  return { playSound };
+  const playSound = (url: string) => {
+    const audioMain = new Audio(url);
+
+    if (selectedOutputId) {
+      if (typeof audioMain.setSinkId === "function") {
+        audioMain
+          .setSinkId(selectedOutputId)
+          .catch((err) => console.warn("Erro SinkID Main:", err));
+      }
+    }
+
+    audioMain.volume = 1;
+    audioMain.play().catch((e) => console.error("Erro Play Main:", e));
+
+    if (selectedOutputId) {
+      const audioMonitor = new Audio(url);
+      audioMonitor.volume = 1;
+      audioMonitor.play().catch((e) => console.error("Erro Play Monitor:", e));
+    }
+  };
+
+  return {
+    playSound,
+    devices,
+    selectedOutputId,
+    setAudioOutput,
+    refreshDevices: getDevices,
+  };
 }

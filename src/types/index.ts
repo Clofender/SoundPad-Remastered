@@ -12,3 +12,8 @@ export type ThemeColor =
   | "#ffe600"
   | "#00ccff"
   | "#a855f7";
+
+export interface AudioDevice {
+  deviceId: string;
+  label: string;
+}

@@ -17,7 +17,13 @@ function App() {
   const [sounds, setSounds] = useState<Sound[]>([]);
   const [recordingId, setRecordingId] = useState<string | null>(null);
 
-  const { playSound } = useAudio();
+  const {
+    playSound,
+    devices,
+    selectedOutputId,
+    setAudioOutput,
+    refreshDevices,
+  } = useAudio();
   const { theme, setTheme, colors } = useTheme();
 
   useEffect(() => {
@@ -110,6 +116,10 @@ function App() {
             currentTheme={theme}
             onThemeChange={setTheme}
             colors={colors}
+            audioDevices={devices}
+            currentAudioDeviceId={selectedOutputId}
+            onAudioDeviceChange={setAudioOutput}
+            onRefreshDevices={refreshDevices}
           />
         )}
       </main>

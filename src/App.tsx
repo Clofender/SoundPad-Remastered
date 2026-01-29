@@ -11,6 +11,7 @@ import {
   updateSoundShortcut,
 } from "./utils/db";
 import type { Sound } from "./types";
+import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>("board");
@@ -31,6 +32,44 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const setupShortcuts = async () => {
+      try {
+        await unregisterAll();
+      } catch {
+        void 0;
+      }
+
+      for (const sound of sounds) {
+        if (sound.shortcut) {
+          try {
+            const shortcutKey = sound.shortcut
+              .replace("Key", "")
+              .replace("Digit", "")
+              .replace("ArrowUp", "Up")
+              .replace("ArrowDown", "Down")
+              .replace("ArrowLeft", "Left")
+              .replace("ArrowRight", "Right");
+
+            await register(shortcutKey, (event) => {
+              if (event.state === "Pressed") {
+                playSound(sound.fileUrl);
+              }
+            });
+          } catch (error) {
+            console.error(`Erro no atalho [${sound.shortcut}]:`, error);
+          }
+        }
+      }
+    };
+
+    setupShortcuts();
+
+    return () => {
+      unregisterAll().catch(() => {});
+    };
+  }, [sounds, playSound]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         e.target instanceof HTMLInputElement ||
@@ -40,46 +79,21 @@ function App() {
 
       if (recordingId) {
         e.preventDefault();
-        const code = e.code
-          .replace("Key", "")
-          .replace("Digit", "")
-          .replace("Numpad", "Num");
+        const rawCode = e.code;
 
         setSounds((prev) =>
           prev.map((s) =>
-            s.id === recordingId ? { ...s, shortcut: code } : s,
+            s.id === recordingId ? { ...s, shortcut: rawCode } : s,
           ),
         );
-        updateSoundShortcut(recordingId, code);
+        updateSoundShortcut(recordingId, rawCode);
         setRecordingId(null);
-        return;
-      }
-
-      const code = e.code
-        .replace("Key", "")
-        .replace("Digit", "")
-        .replace("Numpad", "Num");
-      const soundToPlay = sounds.find((s) => s.shortcut === code);
-
-      if (soundToPlay) {
-        playSound(soundToPlay.fileUrl);
-
-        const cardElement = document.getElementById(
-          `sound-btn-${soundToPlay.id}`,
-        );
-        if (cardElement) {
-          cardElement.classList.add("scale-95", "brightness-150");
-          setTimeout(
-            () => cardElement.classList.remove("scale-95", "brightness-150"),
-            100,
-          );
-        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [sounds, recordingId, playSound]);
+  }, [recordingId]);
 
   const handleAddSound = async (file: File) => {
     const newSound: Sound = {

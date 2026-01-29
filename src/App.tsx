@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Header, type TabType } from "./components/layout/Header";
+import { SettingsTab } from "./components/layout/SettingsTab";
 import { SoundCard } from "./components/ui/SoundCard";
 import { useAudio } from "./hooks/useAudio";
+import { useTheme } from "./hooks/useTheme";
 import { Plus } from "lucide-react";
 import type { Sound } from "./types";
 import { saveSoundToDB, getAllSounds, deleteSoundFromDB } from "./utils/db";
@@ -9,7 +11,10 @@ import { saveSoundToDB, getAllSounds, deleteSoundFromDB } from "./utils/db";
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>("board");
   const [sounds, setSounds] = useState<Sound[]>([]);
+
   const { playSound } = useAudio();
+  const { theme, setTheme, colors } = useTheme();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -30,9 +35,7 @@ function App() {
     };
 
     setSounds((prev) => [...prev, newSound]);
-
     await saveSoundToDB(newSound, file);
-
     event.target.value = "";
   };
 
@@ -79,9 +82,11 @@ function App() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 text-gray-500">
-            Configurações em breve...
-          </div>
+          <SettingsTab
+            currentTheme={theme}
+            onThemeChange={setTheme}
+            colors={colors}
+          />
         )}
       </main>
     </div>

@@ -1,4 +1,4 @@
-import { Grid, Settings, LucideIcon } from "lucide-react";
+import { Grid, Settings, type LucideIcon } from "lucide-react";
 
 export type TabType = "board" | "settings";
 

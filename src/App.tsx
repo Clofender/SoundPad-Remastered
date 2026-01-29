@@ -4,12 +4,18 @@ import { SoundBoard } from "./components/layout/SoundBoard";
 import { SettingsTab } from "./components/layout/SettingsTab";
 import { useAudio } from "./hooks/useAudio";
 import { useTheme } from "./hooks/useTheme";
-import { saveSoundToDB, getAllSounds, deleteSoundFromDB } from "./utils/db";
+import {
+  saveSoundToDB,
+  getAllSounds,
+  deleteSoundFromDB,
+  updateSoundShortcut,
+} from "./utils/db";
 import type { Sound } from "./types";
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>("board");
   const [sounds, setSounds] = useState<Sound[]>([]);
+  const [recordingId, setRecordingId] = useState<string | null>(null);
 
   const { playSound } = useAudio();
   const { theme, setTheme, colors } = useTheme();
@@ -18,6 +24,57 @@ function App() {
     getAllSounds().then(setSounds);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      )
+        return;
+
+      if (recordingId) {
+        e.preventDefault();
+        const code = e.code
+          .replace("Key", "")
+          .replace("Digit", "")
+          .replace("Numpad", "Num");
+
+        setSounds((prev) =>
+          prev.map((s) =>
+            s.id === recordingId ? { ...s, shortcut: code } : s,
+          ),
+        );
+        updateSoundShortcut(recordingId, code);
+        setRecordingId(null);
+        return;
+      }
+
+      const code = e.code
+        .replace("Key", "")
+        .replace("Digit", "")
+        .replace("Numpad", "Num");
+      const soundToPlay = sounds.find((s) => s.shortcut === code);
+
+      if (soundToPlay) {
+        playSound(soundToPlay.fileUrl);
+
+        const cardElement = document.getElementById(
+          `sound-btn-${soundToPlay.id}`,
+        );
+        if (cardElement) {
+          cardElement.classList.add("scale-95", "brightness-150");
+          setTimeout(
+            () => cardElement.classList.remove("scale-95", "brightness-150"),
+            100,
+          );
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [sounds, recordingId, playSound]);
+
   const handleAddSound = async (file: File) => {
     const newSound: Sound = {
       id: crypto.randomUUID(),
@@ -25,7 +82,6 @@ function App() {
       fileUrl: URL.createObjectURL(file),
       volume: 1,
     };
-
     setSounds((prev) => [...prev, newSound]);
     await saveSoundToDB(newSound, file);
   };
@@ -43,9 +99,11 @@ function App() {
         {activeTab === "board" ? (
           <SoundBoard
             sounds={sounds}
+            recordingId={recordingId}
             onPlay={playSound}
             onDelete={handleDelete}
             onAddSound={handleAddSound}
+            onRecordShortcut={setRecordingId}
           />
         ) : (
           <SettingsTab

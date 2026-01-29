@@ -5,30 +5,33 @@ import type { Sound } from "../../types";
 
 interface SoundBoardProps {
   sounds: Sound[];
+  recordingId: string | null;
   onPlay: (url: string) => void;
   onDelete: (id: string) => void;
   onAddSound: (file: File) => void;
+  onRecordShortcut: (id: string) => void;
 }
 
 export function SoundBoard({
   sounds,
+  recordingId,
   onPlay,
   onDelete,
   onAddSound,
+  onRecordShortcut,
 }: SoundBoardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      onAddSound(file); 
-      event.target.value = ""; 
+      onAddSound(file);
+      event.target.value = "";
     }
   };
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-      {/* Input Invisível */}
       <input
         type="file"
         ref={fileInputRef}
@@ -37,7 +40,6 @@ export function SoundBoard({
         className="hidden"
       />
 
-      {/* Botão Adicionar */}
       <button
         onClick={() => fileInputRef.current?.click()}
         className="group flex flex-col items-center justify-center aspect-square border-2 border-dashed border-white/10 rounded-xl text-gray-500 hover:border-primary hover:text-primary hover:bg-white/[0.02] transition-all"
@@ -49,16 +51,18 @@ export function SoundBoard({
         <span className="text-sm font-medium">Adicionar</span>
       </button>
 
-      {/* Lista de Sons */}
       {sounds.map((sound) => (
-        <SoundCard
-          key={sound.id}
-          title={sound.title}
-          shortcut={sound.shortcut}
-          onClick={() => onPlay(sound.fileUrl)}
-          onDelete={() => onDelete(sound.id)}
-          onEditShortcut={() => alert("Em breve!")}
-        />
+        <div key={sound.id} id={`sound-btn-${sound.id}`}>
+          {" "}
+          <SoundCard
+            title={sound.title}
+            shortcut={sound.shortcut}
+            isRecording={recordingId === sound.id}
+            onClick={() => onPlay(sound.fileUrl)}
+            onDelete={() => onDelete(sound.id)}
+            onEditShortcut={() => onRecordShortcut(sound.id)}
+          />
+        </div>
       ))}
     </div>
   );

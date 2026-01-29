@@ -36,3 +36,16 @@ export const deleteSoundFromDB = async (id: string) => {
   const db = await initDB();
   await db.delete(STORE_NAME, id);
 };
+
+export const updateSoundShortcut = async (id: string, shortcut: string) => {
+  const db = await initDB();
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  const store = tx.objectStore(STORE_NAME);
+
+  const item = await store.get(id);
+  if (item) {
+    item.shortcut = shortcut;
+    await store.put(item);
+  }
+  await tx.done;
+};

@@ -1,12 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Header, type TabType } from "./components/layout/Header";
+import { SoundBoard } from "./components/layout/SoundBoard";
 import { SettingsTab } from "./components/layout/SettingsTab";
-import { SoundCard } from "./components/ui/SoundCard";
 import { useAudio } from "./hooks/useAudio";
 import { useTheme } from "./hooks/useTheme";
-import { Plus } from "lucide-react";
-import type { Sound } from "./types";
 import { saveSoundToDB, getAllSounds, deleteSoundFromDB } from "./utils/db";
+import type { Sound } from "./types";
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>("board");
@@ -15,18 +14,11 @@ function App() {
   const { playSound } = useAudio();
   const { theme, setTheme, colors } = useTheme();
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     getAllSounds().then(setSounds);
   }, []);
 
-  const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const handleAddSound = async (file: File) => {
     const newSound: Sound = {
       id: crypto.randomUUID(),
       title: file.name.replace(/\.[^/.]+$/, ""),
@@ -36,7 +28,6 @@ function App() {
 
     setSounds((prev) => [...prev, newSound]);
     await saveSoundToDB(newSound, file);
-    event.target.value = "";
   };
 
   const handleDelete = async (id: string) => {
@@ -50,37 +41,12 @@ function App() {
 
       <main className="mx-auto max-w-7xl p-6 animate-in fade-in duration-500">
         {activeTab === "board" ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept="audio/*"
-              className="hidden"
-            />
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="group flex flex-col items-center justify-center aspect-square border-2 border-dashed border-white/10 rounded-xl text-gray-500 hover:border-primary hover:text-primary hover:bg-white/[0.02] transition-all"
-            >
-              <Plus
-                size={40}
-                className="mb-2 transition-transform duration-300 group-hover:scale-110"
-              />
-              <span className="text-sm font-medium">Adicionar</span>
-            </button>
-
-            {sounds.map((sound) => (
-              <SoundCard
-                key={sound.id}
-                title={sound.title}
-                shortcut={sound.shortcut}
-                onClick={() => playSound(sound.fileUrl)}
-                onDelete={() => handleDelete(sound.id)}
-                onEditShortcut={() => alert("Em breve!")}
-              />
-            ))}
-          </div>
+          <SoundBoard
+            sounds={sounds}
+            onPlay={playSound}
+            onDelete={handleDelete}
+            onAddSound={handleAddSound}
+          />
         ) : (
           <SettingsTab
             currentTheme={theme}

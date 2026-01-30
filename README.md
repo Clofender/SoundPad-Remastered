@@ -56,25 +56,33 @@ O **SoundPad Remastered** combina a robustez do baixo nível com a beleza da web
 
 ## 🎧 Como Configurar (Para que os outros ouçam)
 
-Para que seus amigos no Discord ou no jogo ouçam os sons, você precisa de um "Cabo Virtual". Ele conecta a saída do SoundPad diretamente na entrada do seu microfone.
+Para que seus amigos no Discord ou no jogo ouçam os sons **E** a sua voz ao mesmo tempo, precisamos configurar o Windows para jogar o som do seu microfone para dentro do Cabo Virtual.
 
 ### 1. Instale o VB-Cable
 1. Baixe o **VB-Audio Virtual Cable** (Grátis) no site oficial: [vb-audio.com](https://vb-audio.com/Cable/).
-2. Extraia o arquivo ZIP.
-3. Clique com o botão direito em `VBCABLE_Setup_x64.exe` e escolha **"Executar como Administrador"**.
-4. Instale e reinicie o computador.
+2. Extraia o arquivo ZIP, execute o `VBCABLE_Setup_x64.exe` como Administrador e reinicie o PC.
 
-### 2. Configure no SoundPad Remastered
-1. Abra o **SoundPad Remastered**.
-2. Vá na aba **Configurações**.
-3. Em "Dispositivo de Saída", selecione: **CABLE Input (VB-Audio Virtual Cable)**.
-   *(Agora o app está enviando o som para o cabo virtual).*
+### 2. Junte seu Microfone (O Passo Importante!)
+Para que sua voz saia junto com os sons no cabo virtual:
+1. Pressione `Win + R`, digite `mmsys.cpl` e dê Enter.
+2. Vá na aba **Gravação**.
+3. Clique 2x no seu **Microfone Principal** (o que você usa para falar).
+4. Vá na aba **Escutar**.
+5. Marque a caixinha ☑️ **"Escutar o dispositivo"**.
+6. Em "Reproduzir neste dispositivo", escolha: **CABLE Input (VB-Audio Virtual Cable)**.
+7. Clique em Aplicar.
+   *(Agora sua voz está sendo enviada para o cabo junto com os efeitos sonoros).*
 
-### 3. Configure no Discord / Jogos
-1. Abra as configurações de **Voz e Vídeo** do seu aplicativo (Discord, Teams, Valorant, etc.).
-2. No **Dispositivo de Entrada (Microfone)**, selecione: **CABLE Output (VB-Audio Virtual Cable)**.
+### 3. Configure no SoundPad Remastered
+1. Abra o **SoundPad Remastered** e vá em **Configurações**.
+2. Em "Dispositivo de Saída", selecione: **CABLE Input (VB-Audio Virtual Cable)**.
 
-> **Dica Pro:** O SoundPad Remastered já possui "Monitoramento Automático". Isso significa que você ouvirá o som no seu fone normalmente, enquanto seus amigos ouvem pelo cabo virtual!
+### 4. Configure no Discord / Jogos
+1. Nas configurações de **Voz/Áudio** do Discord ou Jogo:
+2. **Dispositivo de Entrada (Microfone):** Selecione **CABLE Output (VB-Audio Virtual Cable)**.
+3. **Dispositivo de Saída (Fones):** Mantenha seu fone de ouvido normal.
+
+> **Dica Pro:** O SoundPad Remastered já possui "Monitoramento Automático". Isso significa que você ouvirá o som no seu fone normalmente, enquanto seus amigos ouvem a mistura (Voz + Sons) pelo cabo virtual!
 
 ---
 
